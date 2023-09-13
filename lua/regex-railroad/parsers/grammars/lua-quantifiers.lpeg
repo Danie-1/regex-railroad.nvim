@@ -1,0 +1,24 @@
+quantifier                      <- star_quantifier
+                                 / plus_quantifier
+                                 / minus_quantifier
+                                 / question_mark_quantifier
+
+star_quantifier                 <- '*'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> 'Infinity' :}
+
+plus_quantifier                 <- '+'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '1' :}
+                                   {:max: '' -> 'Infinity' :}
+
+minus_quantifier                <- '-'
+                                   {:greedy: '' -> 'lazy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> 'Infinity' :}
+
+question_mark_quantifier        <- '?'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> '1' :}

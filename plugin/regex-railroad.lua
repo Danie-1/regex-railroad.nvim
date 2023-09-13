@@ -1,1 +1,1 @@
-vim.api.nvim_create_user_command("MyFirstFunction", require("regex-railroad").hello, {})
+-- vim.api.nvim_create_user_command("MyFirstFunction", require("regex-railroad").hello, {})

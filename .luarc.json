@@ -1,0 +1,8 @@
+{
+    "workspace.library": [
+        "/home/daniel/.local/share/nvim/lazy/neodev.nvim/types/stable",
+        "/usr/share/nvim/runtime/lua",
+        "/home/daniel/projects/regex-railroad.nvim/lua",
+        "${3rd}/luv/library"
+    ]
+}

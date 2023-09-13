@@ -1,0 +1,85 @@
+quantifier                      <- star_question_mark_quantifier
+				 / plus_question_mark_quantifier
+				 / double_question_mark_quantifier
+				 / star_plus_quantifier
+				 / double_plus_quantifier
+				 / question_mark_plus_quantifier
+				 / star_quantifier
+                                 / plus_quantifier
+                                 / question_mark_quantifier
+				 / exact_number_quantifier
+				 / min_max_quantifier_lazy
+				 / min_max_quantifier_possessive
+				 / min_max_quantifier
+
+star_question_mark_quantifier	<- '*?'
+                                   {:greedy: '' -> 'lazy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> 'Infinity' :}
+
+plus_question_mark_quantifier	<- '+?'
+                                   {:greedy: '' -> 'lazy' :}
+                                   {:min: '' -> '1' :}
+                                   {:max: '' -> 'Infinity' :}
+
+double_question_mark_quantifier	<- '??'
+                                   {:greedy: '' -> 'lazy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> '1' :}
+
+star_plus_quantifier		<- '*+'
+                                   {:greedy: '' -> 'possessive' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> 'Infinity' :}
+
+double_plus_quantifier		<- '++'
+                                   {:greedy: '' -> 'possessive' :}
+                                   {:min: '' -> '1' :}
+                                   {:max: '' -> 'Infinity' :}
+
+question_mark_plus_quantifier	<- '?+'
+                                   {:greedy: '' -> 'possessive' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> '1' :}
+
+star_quantifier                 <- '*'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> 'Infinity' :}
+
+plus_quantifier                 <- '+'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '1' :}
+                                   {:max: '' -> 'Infinity' :}
+
+question_mark_quantifier        <- '?'
+                                   {:greedy: '' -> 'greedy' :}
+                                   {:min: '' -> '0' :}
+                                   {:max: '' -> '1' :}
+
+exact_number_quantifier		<- '{'
+				   {:greedy: '' -> 'exact' :}
+				   {:min: %d+ :}
+				   -- {:max: %d+ :}
+				   '}'
+
+min_max_quantifier_lazy		<- '{'
+				   {:greedy: '' -> 'lazy' :}
+				   {:min: %d+ :}
+				   ','
+				   {:max: %d+ :}
+				   '}?'
+
+min_max_quantifier_possessive	<- '{'
+				   {:greedy: '' -> 'greedy no backtrack' :}
+				   {:min: %d+ :}
+				   ','
+				   {:max: %d+ :}
+				   '}+'
+
+min_max_quantifier		<- '{'
+				   {:greedy: '' -> 'greedy' :}
+				   {:min: %d+ :}
+				   ','
+				   {:max: %d+ :}
+				   '}'

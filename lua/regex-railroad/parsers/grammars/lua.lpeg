@@ -1,0 +1,119 @@
+-- See https://www.lua.org/manual/5.1/manual.html#5.4.1
+
+pattern                         <- {| {:type: '' -> 'expression' :} (
+					start_anchor? sub_pattern end_anchor?
+				   ) |} !.
+
+sub_pattern                     <- (!(end_anchor !.) pattern_item)*
+
+pattern_item                    <- quantified_character_class
+                                 / character_class
+                                 / numbered_capture_group
+                                 / match_numbered_capture
+                                 / balanced_string
+
+match_numbered_capture          <- {|
+                                        {:type: '%' -> 'match_capture' :}
+                                        {:name: {~ '' -> 'Group ' { [1-9] } ~} :}
+                                   |}
+
+
+balanced_string                 <- {|
+                                        {:type: '%b' -> 'balanced_string' :}
+                                        {:open: . :}
+                                        {:close: . :}
+                                   |}
+
+quantified_character_class      <- {|
+                                        {:type: '' -> 'quantified_expression' :}
+                                        {:sub_expr: {|
+						{:type: '' -> 'expression' :}
+						character_class
+					|} :}
+                                        quantifier
+                                   |}
+
+numbered_capture_group          <- {| '('
+                                        {:type: '' -> 'group' :}
+					{:name: {~ '' -> 'Group ' '' -> get_capture_number ~} :}
+                                        {:sub_expr: {|
+						{:type: '' -> 'expression' :}
+						sub_pattern
+					|} :}
+                                   ')' |}
+
+character_class                 <- non_magic_character
+                                 / any_character
+                                 / percent_character_class
+                                 / character_set
+                                 / character_set_complement
+
+any_character                   <- {| {:type: '' -> 'character_class' :} {:class: '.' -> 'any_character' :} |}
+
+percent_character_class         <- {| {:type: '' -> 'character_class' :} (
+					any_letter
+				      / not_any_letter
+                                      / any_control_character
+                                      / not_any_control_character
+                                      / any_digit
+                                      / not_any_digit
+                                      / any_lowercase_letter
+                                      / not_any_lowercase_letter
+                                      / any_punctuation_character
+                                      / not_any_punctuation_character
+                                      / any_space_character
+                                      / not_any_space_character
+                                      / any_uppercase_letter
+                                      / not_any_uppercase_letter
+                                      / any_alphanumeric_character
+                                      / not_any_alphanumeric_character
+                                      / any_hexadecimal_digit
+                                      / not_any_hexadecimal_digit
+                                      / zero_character
+                                      / not_zero_character
+                                      / escaped_non_alphanum_character
+                                   ) |}
+
+
+non_magic_character             <- {|
+                                        {:type: '' -> 'character' :}
+					-- The reference says ^ and $ are also magic, but ONLY
+					-- at the start / end of strings, so it's ok to not list
+					-- them here.
+                                        {:character: [^][()%.*+?-] :}
+                                   |}
+
+character_set                   <- {| '[' !'^'
+                                        {:type: '' -> 'character_set' :}
+					{:complement: '' -> 'false' :}
+                                        {:items: {| character_set_items |} :}
+                                   ']' |}
+
+character_set_complement        <- {| '[^'
+                                        {:type: '' -> 'character_set' :}
+					{:complement: '' -> 'true' :}
+                                        {:items: {| character_set_items |} :}
+                                   ']' |}
+
+character_set_items             <- ({ ']' } / character_set_item) (character_set_item)*
+
+character_set_item              <- character_range
+                                 / percent_character_class
+                                 / { !']' . }
+
+character_range                 <- {|
+                                        {:type: '' -> 'character_range' :}
+                                        {:start: !']' !percent_character_class . :}
+                                        '-'
+                                        {:finish: !']' !percent_character_class . :}
+                                   |}
+
+start_anchor                    <- {|
+					{:type: '' -> 'anchor' :}
+					{:description: '^' -> 'START OF STRING' :}
+				   |}
+
+end_anchor                      <- {|
+					{:type: '' -> 'anchor' :}
+					{:description: '$' -> 'END OF STRING' :}
+				   |}

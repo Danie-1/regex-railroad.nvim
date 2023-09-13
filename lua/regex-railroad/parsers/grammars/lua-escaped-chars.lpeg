@@ -1,0 +1,51 @@
+any_letter                      <- {:class: '%a' -> 'any_letter' :}
+
+not_any_letter                  <- {:class: '%A' -> 'any_letter' :}
+                                   {:negate: '' -> 'true' :}
+
+any_control_character           <- {:class: '%c' -> 'any_control_character' :}
+
+not_any_control_character       <- {:class: '%C' -> 'any_control_character' :}
+                                   {:negate: '' -> 'true' :}
+
+any_digit                       <- {:class: '%d' -> 'any_digit' :}
+
+not_any_digit                   <- {:class: '%D' -> 'any_digit' :}
+                                   {:negate: '' -> 'true' :}
+
+any_lowercase_letter            <- {:class: '%l' -> 'any_lowercase_letter' :}
+
+not_any_lowercase_letter        <- {:class: '%L' -> 'any_lowercase_letter' :}
+                                   {:negate: '' -> 'true' :}
+
+any_punctuation_character       <- {:class: '%p' -> 'any_punctuation_character' :}
+
+not_any_punctuation_character   <- {:class: '%P' -> 'any_punctuation_character' :}
+                                   {:negate: '' -> 'true' :}
+
+any_space_character             <- {:class: '%s' -> 'any_whitespace_character' :}
+ 
+not_any_space_character         <- {:class: '%S' -> 'any_whitespace_character' :}
+                                   {:negate: '' -> 'true' :}
+
+any_uppercase_letter            <- {:class: '%u' -> 'any_uppercase_letter' :}
+
+not_any_uppercase_letter        <- {:class: '%U' -> 'any_uppercase_letter' :}
+                                   {:negate: '' -> 'true' :}
+
+any_alphanumeric_character      <- {:class: '%w' -> 'any_alphanumeric_character' :}
+
+not_any_alphanumeric_character  <- {:class: '%W' -> 'any_alphanumeric_character' :}
+                                   {:negate: '' -> 'true' :}
+
+any_hexadecimal_digit           <- {:class: '%x' -> 'any_hexadecimal_digit' :}
+
+not_any_hexadecimal_digit       <- {:class: '%X' -> 'any_hexadecimal_digit' :}
+                                   {:negate: '' -> 'true' :}
+
+zero_character                  <- {:class: '%z' -> 'zero_character' :}
+
+not_zero_character              <- {:class: '%Z' -> 'zero_character' :}
+                                   {:negate: '' -> 'true' :}
+
+escaped_non_alphanum_character  <- '%' {:class: '' -> 'literal' :} {:character: %W :}

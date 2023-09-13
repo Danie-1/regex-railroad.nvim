@@ -1,0 +1,122 @@
+-- See https://docs.python.org/3/library/re.html#regular-expression-syntax
+-- This grammar is for python3.11.
+
+whole_expression                <- {| {:type: '' -> 'expression' :}
+                                        global_flags? sub_expression
+                                   |} !.
+
+sub_expression                  <- choice_expression / choiceless_expression
+
+choice_expression               <- {| {:type: '' -> 'choice' :}
+                                        {:choices: {|
+                                                choiceless_expression ('|' choiceless_expression)+
+                                        |} :}
+                                   |}
+
+choiceless_expression           <- expression_component*
+
+expression_component		<- quantified_component / unquantified_component
+
+quantified_component		<- {|
+                                        {:type: '' -> 'quantified_expression' :}
+                                        {:sub_expr: {|
+						{:type: '' -> 'expression' :}
+						unquantified_component
+					|} :}
+                                        quantifier
+                                   |}
+
+unquantified_component		<- simple_capturing_group
+				 / named_capturing_group
+				 / non_capturing_group
+                                 / look_assertion
+				 / backreference
+				 / comment
+				 / non_magic_character
+
+non_magic_character		<- {|
+					{:type: '' -> 'character' :}
+					{:character: [^][()|.^$*+?\] :}
+				   |}
+
+-- Before 3.11, flags didn't have to be at the beginning of a string.
+-- However, for now I will just assume 3.11 syntax.
+global_flags                    <- '(?' {| {:type: '' -> 'global_flags' :}
+                                        {:set: {| flag_type+ |} :}
+                                        {:remove: {|  |} :}
+                                   |} ')'
+
+flag_type                       <- 'a' -> 'ASCII-only matching'
+                                 / 'i' -> 'ignore case'
+                                 / 'L' -> 'locale dependent'
+                                 / 'm' -> 'multi-line'
+                                 / 's' -> 'dot matches all'
+                                 / 'u' -> 'Unicode matching'
+                                 / 'x' -> 'verbose'
+
+non_capturing_group             <- '(?' {| (&':' / {:flags: group_flags :}) ':'
+					group_contents
+                                   |} ')'
+
+group_flags                     <- {| {:type: '' -> 'group_flags' :}
+                                        ({:set: {| flag_type+ |} :})?
+                                        ('-' {:remove: {| flag_type+ |} :})?
+                                   |}
+
+simple_capturing_group		<- '(' !'?' {|
+					{:name: {~ '' -> 'Group ' '' -> get_capture_number ~} :}
+					group_contents
+				   |} ')'
+
+atomic_group                    <- '(?>' {|
+                                        {:name: '' -> 'Atomic Group' :}
+                                        group_contents
+                                   |} ')'
+
+conditional                     <- '(?(' {|
+                                        {:type: '' -> 'conditional' :}
+                                        {:name: (valid_identifier / %d+) :}
+                                        {:if: choiceless_expression :}
+                                        '|'
+                                        {:else: choiceless_expression :}
+                                   |} ')'
+
+named_capturing_group		<- '(?P' {|
+					'<' {:name: {~ '' -> 'Group "' valid_identifier '' -> '"' ~} :} '>'
+					group_contents
+				   |} ')'
+
+look_assertion                  <- '(?' {|
+					{:name:
+                                                '=' -> 'Positive lookahead'
+                                              / '!' -> 'Negative lookahead'
+                                              / '<=' -> 'Positive lookbehind'
+                                              / '<!' -> 'Negative lookbehind'
+                                        :}
+					group_contents
+				   |} ')'
+
+group_contents			<- {:type: '' -> 'group' :} {:sub_expr: {|
+                                        {:type: '' -> 'expression' :}
+                                        sub_expression
+				   |} :}
+
+backreference			<- '(?' {|
+					{:type: '' -> 'match_capture' :}
+					{:name: { valid_identifier } :}
+				   |} ')'
+
+comment				<- '(?#' {|
+					{:type: '' -> 'comment' :}
+					{:content: comment_content :}
+				   |} ')'
+
+comment_content			<- (
+					'\\'
+				      / '\)'
+				      / !')' .
+				   )*
+
+valid_identifier		<- [a-zA-Z_] [a-zA-Z0-9_]*
+
+-- escaped_char                    <- 
