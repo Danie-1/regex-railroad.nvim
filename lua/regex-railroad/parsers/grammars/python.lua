@@ -1,43 +1,56 @@
-local grammar = [=[
-regular_expression              <- regular_expression_component*
-one_of_many_expressions         <- regular_expression (or_operator regular_expression)+
-regular_expression_component    <- one_of_many_expressions 
-                                   / !special_character
-                                   / group
-                                   / set_of_characters
-set_of_characters               <- complement_set_of_characters / normal_set_of_characters
-complement_set_of_characters    <- '[^' set_of_characters_internal ']'
-normal_set_of_characters        <- '[' set_of_characters_internal ']'
-set_of_characters_internal      <- ('\-'
-                                   / range
-                                   / .)*
-group                           <- '(' regular_expression ')'
-range                           <- . '-' .
-special_character               <- (any_character
-                                   / start_of_string
-                                   / end_of_string
-                                   / zero_or_more_repeats
-                                   / one_or_more_repeats
-                                   / optional_pattern
-                                   / escape_character
-                                   / left_square_bracket
-                                   / right_square_bracket
-                                   / or_operator
-                                   / left_bracket
-                                   / right_bracket)
-any_character                   <- '.'
-start_of_string                 <- '^'
-end_of_string                   <- '$'
-zero_or_more_repeats            <- '*'
-one_or_more_repeats             <- '+'
-optional_pattern                <- '?'
-escape_character                <- '\'
-left_square_bracket             <- '['
-right_square_bracket            <- ']'
-or_operator                     <- '|'
-left_bracket                    <- '('
-right_bracket                   <- '('
-]=]
+local M = {}
 
-local re = require("re")
-print(re.compile(grammar):match("\\\\\\\\\\++hhhhhello"))
+local base = require("regex-railroad.parsers.grammars.base")
+local lpeg = require("regex-railroad.lpeg")
+local g = base.grammar
+
+M[1] = "grammar"
+
+M.grammar = lpeg.Ct(
+  base.capture_type("expression")
+  * lpeg.V("sub_expr")
+  * (lpeg.V("fail_if_close_bracket") + (-lpeg.P(1)))
+)
+
+g.unquantified = lpeg.V("numbered_group")
+    + lpeg.V("named_group")
+    + lpeg.V("named_backreference")
+    + lpeg.V("fail_if_unrecognised_group_type")
+    + lpeg.V("fail_if_open_bracket")
+    + lpeg.V("character_set")
+    + lpeg.V("pcre_q_e_sequence")
+    + lpeg.V("anchor_no_quantifier")
+    + lpeg.V("invalid_characters")
+    + lpeg.V("assert_no_quantifier")
+    + lpeg.V("literal_character")
+
+g.named_group = lpeg.Ct(
+  lpeg.P("(?P<")
+  * base.capture_type("group")
+  * (
+    lpeg.Cg(
+      lpeg.Cmt(lpeg.Cp() * lpeg.C(lpeg.V("valid_group_name")) * lpeg.Cp(), base.register_named_group) / "Group '%1'",
+      "name"
+    )
+    + lpeg.V("invalid_character_in_group_name")
+  )
+  * (lpeg.P(">") + lpeg.V("invalid_character_in_group_name"))
+  * lpeg.Cg(lpeg.Ct(base.capture_type("expression") * lpeg.V("sub_expr")), "sub_expr")
+  * lpeg.P(")")
+)
+
+g.named_backreference = lpeg.Ct(
+  lpeg.P("(?P=")
+  * base.capture_type("match_capture")
+  * (
+    lpeg.Cg(
+      lpeg.Cmt(lpeg.V("valid_group_name"), base.ensure_group_already_exists) / "'%0'",
+      "name"
+    )
+    + base.parsing_error_if(lpeg.Cp() * lpeg.V("valid_group_name") * lpeg.Cp(), "Group does not yet exist, or is never created:")
+    + lpeg.V("invalid_character_in_group_name")
+  )
+  * (lpeg.P(")") + lpeg.V("invalid_character_in_group_name"))
+)
+
+return lpeg.P(vim.tbl_extend("force", g, M))

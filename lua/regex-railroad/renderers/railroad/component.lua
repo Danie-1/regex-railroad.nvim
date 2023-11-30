@@ -6,6 +6,7 @@
 ---| CharacterSet
 ---| MatchCapture
 ---| Group
+---| PositionCapture
 ---| QuantifiedExpression
 
 ---@class Expression
@@ -45,6 +46,7 @@
 ---| char
 ---| CharacterRange
 ---| CharacterClass
+---| Character
 
 ---@class MatchCapture
 ---@field type 'match_capture'
@@ -54,6 +56,9 @@
 ---@field type 'group'
 ---@field sub_expr Expression
 ---@field name string?
+
+---@class PositionCapture
+---@field type 'position_capture'
 
 ---@class QuantifiedExpression
 ---@field type 'quantified_expression'

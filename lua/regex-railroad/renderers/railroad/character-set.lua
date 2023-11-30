@@ -12,6 +12,9 @@ local Deque = require("regex-railroad.deque")
 local function render_item(item)
   if type(item) == "string" then
     return RectangleOfCharacters:new(Deque:new(HighlightedString:new(item, highlights.character)))
+  elseif item.type == "character" then
+    ---@cast item Character
+    return RectangleOfCharacters:new(Deque:new(HighlightedString:new(item.character, highlights.character)))
   elseif item.type == "character_class" then
     ---@cast item CharacterClass
     return RectangleOfCharacters:new(

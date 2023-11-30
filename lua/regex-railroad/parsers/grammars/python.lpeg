@@ -2,7 +2,7 @@
 -- This grammar is for python3.11.
 
 whole_expression                <- {| {:type: '' -> 'expression' :}
-                                        global_flags? sub_expression
+                                        global_flags* sub_expression
                                    |} !.
 
 sub_expression                  <- choice_expression / choiceless_expression
@@ -101,7 +101,7 @@ group_contents			<- {:type: '' -> 'group' :} {:sub_expr: {|
                                         sub_expression
 				   |} :}
 
-backreference			<- '(?' {|
+backreference			<- '(?P=' {|
 					{:type: '' -> 'match_capture' :}
 					{:name: { valid_identifier } :}
 				   |} ')'

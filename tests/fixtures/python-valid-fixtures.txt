@@ -1,0 +1,11 @@
+abc
+()
+(abc)
+(?P<abc>def)
+(?P<abc>defdefdefdef)
+(?P<abc>)
+(?P<abc>def)(?P=abc)
+[abc]
+[^abc]
+[a-z0-9abc]
+[^a-z0-9abc]

@@ -81,27 +81,30 @@ end
 ---@return string, string?, string?
 local function get_bottom_label(rendered_expr, min_repeat, max_repeat, greedy)
   local repeat_label = get_repeat_label(min_repeat, max_repeat)
+  local greedy_label = greedy ~= "" and greedy or nil
   local label_1
   local label_2
   local label_3
-  if rendered_expr.width > repeat_label:len() + greedy:len() + 5 then
+  if greedy_label == nil and rendered_expr.width > repeat_label:len() + 4 then
+    label_1 = railroad_characters.arrow_left .. " " .. repeat_label .. " " .. railroad_characters.arrow_left
+  elseif greedy_label ~= nil and rendered_expr.width > repeat_label:len() + greedy_label:len() + 5 then
     label_1 = railroad_characters.arrow_left
       .. " "
       .. repeat_label
       .. (repeat_label == "" and "" or " ")
-      .. greedy
+      .. greedy_label
       .. " "
       .. railroad_characters.arrow_left
   elseif rendered_expr.width > repeat_label:len() + 4 and repeat_label ~= "" then
     label_1 = railroad_characters.arrow_left .. " " .. repeat_label .. " " .. railroad_characters.arrow_left
-    label_2 = greedy
+    label_2 = greedy_label
   elseif repeat_label ~= "" then
     label_1 = railroad_characters.arrow_left
     label_2 = repeat_label
-    label_3 = greedy
+    label_3 = greedy_label
   else
     label_1 = railroad_characters.arrow_left
-    label_2 = greedy
+    label_2 = greedy_label
   end
   return label_1, label_2, label_3
 end
@@ -109,7 +112,7 @@ end
 ---@param quantified_expression QuantifiedExpression
 ---@return RectangleOfCharacters
 function M.render_quantifier(quantified_expression)
-  if quantified_expression.greedy == "exact" then
+  if quantified_expression.max == nil then
     quantified_expression.max = quantified_expression.min
   end
   local rendered_expr = main_renderer.render(quantified_expression.sub_expr)

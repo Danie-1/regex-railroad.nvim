@@ -73,7 +73,7 @@ end
 ---@param character_class CharacterClass
 ---@return RectangleOfCharacters
 function M.render_character_class(character_class)
-  local lines = split_string_at_sep(character_class.class:upper(), "_")
+  local lines = split_string_at_sep((character_class.negate and "NOT_" or "") .. character_class.class:upper(), "_")
   return boxed_lines(lines, highlights.character_class)
 end
 
@@ -81,6 +81,12 @@ end
 ---@return RectangleOfCharacters
 function M.render_match_capture(match_capture)
   return boxed_lines({ "Match", "group", match_capture.name }, highlights.match_capture)
+end
+
+---@param position_capture PositionCapture
+---@return RectangleOfCharacters
+function M.render_position_capture(position_capture)
+  return boxed_lines({ "Position", "capture" }, highlights.position_capture)
 end
 
 return M

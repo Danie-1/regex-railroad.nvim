@@ -7,7 +7,9 @@ local config = {
     character = "String",
     character_class = "Special",
     character_set = "Character",
+    error = "DiagnosticError",
     match_capture = "Constant",
+    position_capture = "Number",
     railroad = "Normal",
   },
   railroad_characters = {
@@ -42,22 +44,23 @@ local config = {
   },
   create_panel = function()
     local Split = require("nui.split")
-    return Split({
-      enter = false,
-      relative = "editor",
-      position = "bottom",
-      size = "40%",
-      buf_options = {
-        filetype = "regex-railroad-rendered",
-      },
-      win_options = {
-        wrap = false,
-        sidescrolloff = 999,
-        virtualedit = "all",
-      },
-      ns_id = "regex-railroad",
-    })
+    return Split(require("regex-railroad").config.split_options)
   end,
+  split_options = {
+    enter = false,
+    relative = "editor",
+    position = "bottom",
+    size = "40%",
+    buf_options = {
+      filetype = "regex-railroad-rendered",
+    },
+    win_options = {
+      wrap = false,
+      sidescrolloff = 999,
+      virtualedit = "all",
+    },
+    ns_id = "regex-railroad",
+  },
   clear = false,
 }
 
@@ -116,23 +119,53 @@ function M.view_expression(expression, flavour)
   end
 
   local railroad_renderer = require("regex-railroad.renderers.railroad")
-  local parsed_expression = parse_expression(expression, flavour)
-  if not parsed_expression then
+  local success, parsed_expression = pcall(parse_expression, expression, flavour)
+  if not success then
+    if parsed_expression.start == nil or parsed_expression.finish == nil or parsed_expression.message == nil then
+      print(vim.inspect(parsed_expression))
+    end
+    local indicator_line = string.rep(" ", parsed_expression.start)
+      .. string.rep("^", parsed_expression.finish - parsed_expression.start)
+    local lines = { parsed_expression.message, expression, indicator_line }
+    vim.api.nvim_buf_set_lines(panel.bufnr, 0, 0, false, lines)
+    vim.api.nvim_buf_add_highlight(
+      panel.bufnr,
+      -1,
+      config.highlights.error,
+      1,
+      parsed_expression.start,
+      parsed_expression.finish
+    )
+  elseif not parsed_expression then
     vim.api.nvim_buf_set_lines(
       panel.bufnr,
       0,
       0,
       false,
-      { 'Failed to parse expression "' .. expression .. '". If you think this is a bug, please report.' }
+      {
+        'Failed to parse expression "'
+          .. expression
+          .. '" (unknown parsing error). If you think this is a bug, please report.',
+      }
     )
-    return
   else
     local rendered_diagram = railroad_renderer.render(parsed_expression)
 
     rendered_diagram:render_to_buffer(panel.bufnr)
-    vim.api.nvim_buf_set_option(panel.bufnr, "modifiable", false)
   end
+  vim.api.nvim_buf_set_option(panel.bufnr, "modifiable", false)
   vim.api.nvim_win_set_cursor(panel.winid, { 1, 0 })
+end
+
+function M.draw_lines_to_panel(lines)
+  vim.api.nvim_buf_set_option(panel.bufnr, "modifiable", true)
+  vim.api.nvim_buf_set_lines(panel.bufnr, 0, 0, false, lines)
+  vim.api.nvim_buf_set_option(panel.bufnr, "modifiable", false)
+end
+
+function M.view_escaped_expression(expression, flavour)
+  local unescaped_expression = require("regex-railroad.strings." .. flavour).unescape(expression)
+  M.view_expression(unescaped_expression, flavour)
 end
 
 function M.render_expression_at_cursor()

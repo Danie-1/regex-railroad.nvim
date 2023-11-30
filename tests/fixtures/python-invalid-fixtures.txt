@@ -1,0 +1,12 @@
+(
+)
+(?P<name.invalid>)
+(?P<name.invalid>abc)
+(?P=name)
+(?P=name)(?P<name>abc)
+[]
+[^]
+[
+[^
+[abc
+[^abc

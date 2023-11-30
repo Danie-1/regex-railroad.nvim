@@ -6,7 +6,10 @@ local compute_padding = require("regex-railroad.renderers.railroad.padding").com
 ---@param expression Expression
 ---@return RectangleOfCharacters
 local function render_expression(expression)
-  assert(#expression > 0, "Expression must not be empty.")
+  if #expression == 0 then
+    return M.render({ type = "anchor", description = "EMPTY" })
+  end
+  -- assert(#expression > 0, "Expression must not be empty.")
   local rectangle = M.render(expression[1])
   for i = 2, #expression do
     local padding = compute_padding(expression[i - 1], expression[i])
@@ -49,6 +52,9 @@ function M.render(item)
     ---@cast item Group
     local capture_group = require("regex-railroad.renderers.railroad.capture-group")
     return capture_group.render_capture_group(item)
+  elseif item.type == "position_capture" then
+    ---@cast item PositionCapture
+    return simple_components.render_position_capture(item)
   elseif item.type == "quantified_expression" then
     ---@cast item QuantifiedExpression
     local quantified_expressions = require("regex-railroad.renderers.railroad.quantified-expression")

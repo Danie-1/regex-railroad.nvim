@@ -7,8 +7,10 @@ function M.get_node_of_type_at_cursor(node_types)
   for _, type in pairs(node_types) do
     types[type] = true
   end
+  -- I'm not sure that this root_tree:parse thing is the right way to do things, but I can't get anything else to work
+  local root_tree = vim.treesitter.get_parser()
+  root_tree:parse()
   local node = vim.treesitter.get_node()
-  print(node:type())
   for _ = 1, 10 do
     if node == nil then
       error("Failed to find appropriate node")

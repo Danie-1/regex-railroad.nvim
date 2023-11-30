@@ -80,7 +80,11 @@ non_magic_character             <- {|
 					-- The reference says ^ and $ are also magic, but ONLY
 					-- at the start / end of strings, so it's ok to not list
 					-- them here.
-                                        {:character: [^][()%.*+?-] :}
+					-- Also, from testing things, it seems that the quantifiers
+					-- are only special if they follow a character. Similarly,
+					-- right square bracket only seems to be considered special
+					-- if we are currently trying to construct a character set.
+                                        {:character: [^[()%.] :}
                                    |}
 
 character_set                   <- {| '[' !'^'
