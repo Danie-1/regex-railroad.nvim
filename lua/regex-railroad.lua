@@ -137,17 +137,11 @@ function M.view_expression(expression, flavour)
       parsed_expression.finish
     )
   elseif not parsed_expression then
-    vim.api.nvim_buf_set_lines(
-      panel.bufnr,
-      0,
-      0,
-      false,
-      {
-        'Failed to parse expression "'
-          .. expression
-          .. '" (unknown parsing error). If you think this is a bug, please report.',
-      }
-    )
+    vim.api.nvim_buf_set_lines(panel.bufnr, 0, 0, false, {
+      'Failed to parse expression "'
+        .. expression
+        .. '" (unknown parsing error). If you think this is a bug, please report.',
+    })
   else
     local rendered_diagram = railroad_renderer.render(parsed_expression)
 

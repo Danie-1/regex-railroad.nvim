@@ -18,20 +18,20 @@ g.pcre_no_start_opt = lpeg.P("NO_START_OPT")
 g.pcre_newline_convention = lpeg.P("CR") + lpeg.P("LF") + lpeg.P("CRLF") + lpeg.P("ANYCRLF") + lpeg.P("ANY")
 
 g.pcre_match_and_recursion_limits = lpeg.P("LIMIT_")
-    * (lpeg.P("MATCH") * lpeg.P("RECURSION"))
-    * lpeg.P("=")
-    * lpeg.R("09") ^ 1
+  * (lpeg.P("MATCH") * lpeg.P("RECURSION"))
+  * lpeg.P("=")
+  * lpeg.R("09") ^ 1
 
 g.pcre_global_flags = lpeg.Ct(
   base.capture_type("global_flags")
-  * (lpeg.P("(*") * lpeg.C(
-    lpeg.V("pcre_utf8_support_flag")
-    + lpeg.V("pcre_no_auto_possess")
-    + lpeg.V("pcre_no_start_opt")
-    + lpeg.V("pcre_newline_convention")
-    + lpeg.V("pcre_match_and_recursion_limits")
-  ) * lpeg.P(")"))
-  ^ 0
+    * (lpeg.P("(*") * lpeg.C(
+        lpeg.V("pcre_utf8_support_flag")
+          + lpeg.V("pcre_no_auto_possess")
+          + lpeg.V("pcre_no_start_opt")
+          + lpeg.V("pcre_newline_convention")
+          + lpeg.V("pcre_match_and_recursion_limits")
+      ) * lpeg.P(")"))
+      ^ 0
 )
 
 return M

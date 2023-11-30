@@ -68,14 +68,14 @@ local capture_type = M.capture_type
 -- Anyway, hopefully this works.
 local cont = lpeg.R("\128\191") -- continuation byte
 local utf8character = lpeg.R("\0\127")
-    + lpeg.R("\194\223") * cont
-    + lpeg.R("\224\239") * cont * cont
-    + lpeg.R("\240\244") * cont * cont * cont
+  + lpeg.R("\194\223") * cont
+  + lpeg.R("\224\239") * cont * cont
+  + lpeg.R("\240\244") * cont * cont * cont
 
 g.sub_expr = lpeg.V("choice") + lpeg.V("choiceless") + lpeg.P("")
 
-g.choice = lpeg.Ct(capture_type("choice") * lpeg.C(lpeg.V("choiceless")) *
-  (lpeg.P("|") * lpeg.C(lpeg.V("choiceless"))) ^ 1)
+g.choice =
+  lpeg.Ct(capture_type("choice") * lpeg.C(lpeg.V("choiceless")) * (lpeg.P("|") * lpeg.C(lpeg.V("choiceless"))) ^ 1)
 
 g.choiceless = lpeg.V("component") ^ 1
 
@@ -83,8 +83,8 @@ g.component = lpeg.V("quantified") + lpeg.V("unquantified")
 
 g.quantified = lpeg.Ct(
   capture_type("quantified_expression")
-  * lpeg.Cg(lpeg.Ct(capture_type("expression") * lpeg.V("unquantified")), "sub_expr")
-  * lpeg.V("quantifier")
+    * lpeg.Cg(lpeg.Ct(capture_type("expression") * lpeg.V("unquantified")), "sub_expr")
+    * lpeg.V("quantifier")
 )
 
 g.quantifier = lpeg.V("quantifier_repeat") * lpeg.V("quantifier_greediness")
@@ -97,20 +97,16 @@ local function quantifier_repeat(pattern, min, max)
 end
 
 g.quantifier_repeat = quantifier_repeat("?", "0", "1")
-    + quantifier_repeat("*", "0", "Infinity")
-    + quantifier_repeat("+", "1", "Infinity")
-    + (
-      lpeg.P("{")
-      * (
-        lpeg.Cg(lpeg.R("09") ^ 1, "min")
-        * (lpeg.P(",") * lpeg.Cg(lpeg.R("09") ^ 1 + lpeg.P("") / "Infinity", "max")) ^ -1
-      )
-      * lpeg.P("}")
-    )
+  + quantifier_repeat("*", "0", "Infinity")
+  + quantifier_repeat("+", "1", "Infinity")
+  + (
+    lpeg.P("{")
+    * (lpeg.Cg(lpeg.R("09") ^ 1, "min") * (lpeg.P(",") * lpeg.Cg(lpeg.R("09") ^ 1 + lpeg.P("") / "Infinity", "max")) ^ -1)
+    * lpeg.P("}")
+  )
 
-g.quantifier_greediness = lpeg.Cg(lpeg.P("?") / "lazy"
-  + lpeg.P("+") / "possessive"
-  + lpeg.P("") / "greedy", "greediness")
+g.quantifier_greediness =
+  lpeg.Cg(lpeg.P("?") / "lazy" + lpeg.P("+") / "possessive" + lpeg.P("") / "greedy", "greediness")
 
 g.fail_if_open_bracket = M.parsing_error_if(lpeg.Cp() * lpeg.P("(") * lpeg.Cp(), "Bracket is never closed:")
 
@@ -123,10 +119,8 @@ g.anchor_no_quantifier = M.parsing_error_if(
   "Anchor expressions cannot be quantified:"
 ) + lpeg.V("anchor")
 
-g.assert_no_quantifier = M.parsing_error_if(
-  lpeg.Cp() * lpeg.V("quantifier") * lpeg.Cp(),
-  "Quantifier is at an invalid location:"
-)
+g.assert_no_quantifier =
+  M.parsing_error_if(lpeg.Cp() * lpeg.V("quantifier") * lpeg.Cp(), "Quantifier is at an invalid location:")
 
 g.signed_number = lpeg.P("-") ^ -1 * lpeg.R("09") ^ 1
 
@@ -134,59 +128,52 @@ g.valid_group_name = (lpeg.R("az", "AZ", "__") * lpeg.R("09", "az", "AZ", "__") 
 
 g.numbered_group = lpeg.Ct(
   lpeg.P("(")
-  * (-lpeg.P("?"))
-  * M.capture_type("group")
-  * lpeg.Cg(lpeg.Cmt(lpeg.P(""), M.get_group_number) / "Group %1", "name")
-  * lpeg.Cg(lpeg.Ct(M.capture_type("expression") * lpeg.V("sub_expr")), "sub_expr")
-  * lpeg.P(")")
+    * (-lpeg.P("?"))
+    * M.capture_type("group")
+    * lpeg.Cg(lpeg.Cmt(lpeg.P(""), M.get_group_number) / "Group %1", "name")
+    * lpeg.Cg(lpeg.Ct(M.capture_type("expression") * lpeg.V("sub_expr")), "sub_expr")
+    * lpeg.P(")")
 )
 
-g.invalid_character_in_group_name = M.parsing_error_if(
-  lpeg.Cp() * lpeg.P(1) * lpeg.Cp(),
-  "Invalid character in group name:"
-)
+g.invalid_character_in_group_name =
+  M.parsing_error_if(lpeg.Cp() * lpeg.P(1) * lpeg.Cp(), "Invalid character in group name:")
 
-g.fail_if_unrecognised_group_type = M.parsing_error_if(
-  lpeg.P("(?") * lpeg.Cp() * lpeg.P(1) * lpeg.Cp(),
-  "Unrecognised group type:"
-)
+g.fail_if_unrecognised_group_type =
+  M.parsing_error_if(lpeg.P("(?") * lpeg.Cp() * lpeg.P(1) * lpeg.Cp(), "Unrecognised group type:")
 
-g.escaped_character = lpeg.P("\\") + lpeg.Ct(
-  capture_type("character") * lpeg.Cg(lpeg.P(1) - lpeg.R("az", "AZ", "09"), "character")
-)
+g.escaped_character = lpeg.P("\\")
+  + lpeg.Ct(capture_type("character") * lpeg.Cg(lpeg.P(1) - lpeg.R("az", "AZ", "09"), "character"))
 
 g.pcre_q_e_sequence = lpeg.P("\\Q") * (lpeg.P(1) - lpeg.P("\\E")) ^ 0 * lpeg.P("\\E")
 
 g.character_set = lpeg.P("[")
     * lpeg.Ct(
       capture_type("character_set")
-      * lpeg.Cg(lpeg.P("^") / "true", "complement") ^ -1
-      * lpeg.Cg(lpeg.Ct(lpeg.V("character_set_items")), "items")
+        * lpeg.Cg(lpeg.P("^") / "true", "complement") ^ -1
+        * lpeg.Cg(lpeg.Ct(lpeg.V("character_set_items")), "items")
     )
     * lpeg.P("]")
-    + lpeg.V("fail_if_open_square_bracket")
+  + lpeg.V("fail_if_open_square_bracket")
 
 g.character_set_items = (lpeg.C(lpeg.P("]")) + lpeg.V("character_set_item"))
-    * (lpeg.V("character_set_item") - lpeg.P("]")) ^ 0
+  * (lpeg.V("character_set_item") - lpeg.P("]")) ^ 0
 
 g.character_set_item = (lpeg.V("literal_character") - (lpeg.P("-") + lpeg.P(1) * lpeg.P("-")))
-    + lpeg.V("character_range")
+  + lpeg.V("character_range")
 
 g.character_range = lpeg.Ct(
   M.capture_type("character_range")
-  * lpeg.Cg(lpeg.V("literal_character") / "%0", "start")
-  * lpeg.P("-")
-  * lpeg.Cg(utf8character - lpeg.S("\\]-"), "finish")
+    * lpeg.Cg(lpeg.V("literal_character") / "%0", "start")
+    * lpeg.P("-")
+    * lpeg.Cg(utf8character - lpeg.S("\\]-"), "finish")
 )
 
 g.invalid_characters = lpeg.V("never_match")
 
 g.meta_characters = lpeg.S("\\^$.[|()?*+")
 
-g.literal_character = lpeg.Ct(
-  capture_type("character")
-  * lpeg.Cg(utf8character - lpeg.V("meta_characters"), "character")
-)
+g.literal_character =
+  lpeg.Ct(capture_type("character") * lpeg.Cg(utf8character - lpeg.V("meta_characters"), "character"))
 
 g.never_match = lpeg.P("") - lpeg.P("")
 
